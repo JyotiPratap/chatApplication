@@ -1,5 +1,5 @@
 const messageService = require('../services/messageService');
-const { sendMessageOverWebSocket } = require('../utils/websocketUtils');
+const { sendMessageOverWebSocket,sendTypingStatusOverWebSocket } = require('../utils/websocketUtils');
 
 
 async function sendMessage(req, res) {
@@ -9,11 +9,16 @@ async function sendMessage(req, res) {
             throw { status: 400, message: 'Sender ID, receiver ID, and message are required.' };
         }
 
-        const sendMessageResponse = await messageService.sendMessage({ sender_id, receiver_id, message });  
+        const sendMessageResponse = await messageService.sendMessage({ sender_id, receiver_id, message });
 
         await sendMessageOverWebSocket(sender_id, receiver_id, message);
 
-        res.status(sendMessageResponse.status).json({ message: sendMessageResponse.message });
+        res.status(sendMessageResponse.status).json({
+             message: sendMessageResponse.message,
+             sender_id: sendMessageResponse.sender_id,
+             receiver_id: sendMessageResponse.receiver_id,
+             message: sendMessageResponse.message
+        });
     } catch (error) {
         console.error('Error sending message:', error);
         res.status(error.status || 500).json({ message: error.message || 'Internal server error' });
@@ -60,8 +65,18 @@ async function updateTypingStatus(req, res) {
         }
 
         // Call service function to update typing status
-        const updateTypingStatusResponse = await typingService.updateTypingStatus(userId, isTyping);
-        res.status(updateTypingStatusResponse.status).json({ message: updateTypingStatusResponse.message });
+        const updateTypingStatusResponse = await messageService.updateTypingStatus(userId, isTyping);
+        const { message, userId: updatedUserId, isTyping: updatedIsTyping } = updateTypingStatusResponse;
+
+        // Update typing status over WebSocket
+        await sendTypingStatusOverWebSocket(userId, isTyping);
+
+        // Return response along with relevant data from service
+        res.status(updateTypingStatusResponse.status).json({
+            message,
+            userId: updatedUserId,
+            isTyping: updatedIsTyping
+        });
     } catch (error) {
         console.error('Error updating typing status:', error);
         res.status(error.status || 500).json({ message: error.message || 'Internal server error' });
