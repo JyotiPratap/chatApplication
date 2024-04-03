@@ -3,16 +3,18 @@ const express = require('express');
 const router = express.Router();
 const userController = require("../controllers/userController");
 const messageController = require("../controllers/messageController"); 
+const { userAuth } = require('../middleware/authMiddleware');
+
 
 
 
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 
-router.post('/send-message', messageController.sendMessage);
-router.get('/messages/:user_id', messageController.getMessages);
-router.get('/history/:userId', messageController.getChatHistory);
-router.post('/typing', messageController.updateTypingStatus);
+router.post('/send-message',userAuth, messageController.sendMessage);
+router.get('/messages',userAuth, messageController.getMessages);
+router.get('/history',userAuth, messageController.getChatHistory);
+router.post('/typing',userAuth, messageController.updateTypingStatus);
 
 
 

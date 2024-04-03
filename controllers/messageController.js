@@ -1,17 +1,19 @@
 const messageService = require('../services/messageService');
-const { sendMessageOverWebSocket,sendTypingStatusOverWebSocket } = require('../utils/websocketUtils');
+const { sendMessageOverSocket,sendTypingStatusOverSocket } = require('../utils/socketUtils');
 
 
 async function sendMessage(req, res) {
     try {
-        const { sender_id, receiver_id, message } = req.body;
-        if (!sender_id || !receiver_id || !message) {
-            throw { status: 400, message: 'Sender ID, receiver ID, and message are required.' };
+        const { receiver_id, message } = req.body;
+        const sender_id = req.userId; // Using authenticated user's ID as sender_id
+
+        if (!receiver_id || !message) {
+            throw { status: 400, message: 'Receiver ID and message are required.' };
         }
 
         const sendMessageResponse = await messageService.sendMessage({ sender_id, receiver_id, message });
 
-        await sendMessageOverWebSocket(sender_id, receiver_id, message);
+        await sendMessageOverSocket(sender_id, receiver_id, message);
 
         res.status(sendMessageResponse.status).json({
             success_message: 'Message sent successfully',
@@ -27,13 +29,10 @@ async function sendMessage(req, res) {
     }
 }
 
+
 async function getMessages(req, res) {
     try {
-        const userId = req.params.user_id;
-        if (!userId) {
-            throw { status: 400, message: 'User ID is required.' };
-        }
-
+        const userId = req.userId; // Authenticated user's ID
         const messages = await messageService.getMessages(userId);
         res.status(200).json({ messages });
     } catch (error) {
@@ -42,14 +41,10 @@ async function getMessages(req, res) {
     }
 }
 
+
 async function getChatHistory(req, res) {
     try {
-        const userId = req.params.userId;
-
-        // Validate user ID
-        if (!userId) {
-            throw { status: 400, message: 'User ID is required.' };
-        }
+        const userId = req.userId; // Authenticated user's ID
 
         const chatHistory = await messageService.getChatHistory(userId);
         res.status(200).json({ chatHistory });
@@ -61,17 +56,18 @@ async function getChatHistory(req, res) {
 
 async function updateTypingStatus(req, res) {
     try {
-        const { userId, isTyping } = req.body;
-        if (!userId || !isTyping) {
+        const userId = req.userId;
+
+        const { isTyping } = req.body;
+        if (!isTyping) {
             throw { status: 400, message: 'User ID and typing status are required.' };
         }
-
         // Call service function to update typing status
         const updateTypingStatusResponse = await messageService.updateTypingStatus(userId, isTyping);
         const { message, userId: updatedUserId, isTyping: updatedIsTyping } = updateTypingStatusResponse;
 
         // Update typing status over WebSocket
-        await sendTypingStatusOverWebSocket(userId, isTyping);
+        await sendTypingStatusOverSocket(userId, isTyping);
 
         // Return response along with relevant data from service
         res.status(updateTypingStatusResponse.status).json({
