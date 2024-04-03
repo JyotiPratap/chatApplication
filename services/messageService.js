@@ -28,6 +28,7 @@ async function sendMessage(messageData) {
 
 async function getMessages(userId) {
     const userExists = await User.findByPk(userId);
+    
     if (!userExists) {
         return { status: 404, message: 'User not found.' };
     }
@@ -39,6 +40,7 @@ async function getMessages(userId) {
 
 async function getChatHistory(userId) {
     const userExists = await User.findByPk(userId);
+
     if (!userExists) {
         throw { status: 404, message: 'User not found.' };
     }
@@ -56,8 +58,8 @@ async function getChatHistory(userId) {
 
 
 async function updateTypingStatus(userId, isTyping) {
-    // Check if the user exists in the database
     const userExists = await User.findByPk(userId);
+
     if (!userExists) {
         throw { status: 404, message: 'User not found.' };
     }

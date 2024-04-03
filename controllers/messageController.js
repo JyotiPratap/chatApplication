@@ -62,14 +62,11 @@ async function updateTypingStatus(req, res) {
         if (!isTyping) {
             throw { status: 400, message: 'User ID and typing status are required.' };
         }
-        // Call service function to update typing status
         const updateTypingStatusResponse = await messageService.updateTypingStatus(userId, isTyping);
         const { message, userId: updatedUserId, isTyping: updatedIsTyping } = updateTypingStatusResponse;
 
-        // Update typing status over WebSocket
         await sendTypingStatusOverSocket(userId, isTyping);
 
-        // Return response along with relevant data from service
         res.status(updateTypingStatusResponse.status).json({
             message,
             userId: updatedUserId,

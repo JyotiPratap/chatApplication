@@ -4,7 +4,6 @@ const cors = require('cors');
 const route = require('./routes/route');
 const http = require('http'); // Use built-in http module
 const socketIo = require('socket.io');
-const sequelize = require('./config/database');
 const app = express();
 
 app.use(cors());
