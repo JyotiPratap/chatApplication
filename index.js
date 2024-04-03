@@ -43,6 +43,8 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(3100, () => {
+const PORT = process.env.PORT || 3100;
+
+server.listen(PORT, () => {
   console.log(`Server running on port 3100`);
 });
