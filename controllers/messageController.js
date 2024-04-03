@@ -11,6 +11,10 @@ async function sendMessage(req, res) {
             throw { status: 400, message: 'Receiver ID and message are required.' };
         }
 
+        if (sender_id == receiver_id) {
+            throw { status: 400, message: 'Sender ID and receiver ID cannot be the same.' };
+        }
+
         const sendMessageResponse = await messageService.sendMessage({ sender_id, receiver_id, message });
 
         await sendMessageOverSocket(sender_id, receiver_id, message);
