@@ -14,10 +14,12 @@ async function sendMessage(req, res) {
         await sendMessageOverWebSocket(sender_id, receiver_id, message);
 
         res.status(sendMessageResponse.status).json({
-             message: sendMessageResponse.message,
-             sender_id: sendMessageResponse.sender_id,
-             receiver_id: sendMessageResponse.receiver_id,
-             message: sendMessageResponse.message
+            success_message: 'Message sent successfully',
+            data: {
+                sender_id: sendMessageResponse.sender_id,
+                receiver_id: sendMessageResponse.receiver_id,
+                message: sendMessageResponse.message
+            }
         });
     } catch (error) {
         console.error('Error sending message:', error);

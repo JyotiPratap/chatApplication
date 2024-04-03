@@ -5,15 +5,19 @@ const { Op } = require('sequelize');
 
 async function sendMessage(messageData) {
     const { sender_id, receiver_id, message } = messageData;
+
     const senderExists = await User.findByPk(sender_id);
-    const receiverExists = await User.findByPk(receiver_id);
-    if (!senderExists || !receiverExists) {
-        return { status: 400, message: 'Sender ID or receiver ID does not exist.' };
-    }
+   if (!senderExists) {
+       return { status: 400, message: 'Sender ID does not exist.' };
+   }
+
+   const receiverExists = await User.findByPk(receiver_id);
+   if (!receiverExists) {
+       return { status: 400, message: 'Receiver ID does not exist.' };
+   }
     await Message.create({ sender_id, receiver_id, message });
     return {
-        status: 200, 
-        message: 'Message sent successfully',
+        status: 200,
         sender_id,
         receiver_id,
         message
@@ -38,7 +42,6 @@ async function getChatHistory(userId) {
     if (!userExists) {
         throw { status: 404, message: 'User not found.' };
     }
-
     const chatHistory = await Message.findAll({
         where: {
             [Op.or]: [
@@ -58,8 +61,6 @@ async function updateTypingStatus(userId, isTyping) {
     if (!userExists) {
         throw { status: 404, message: 'User not found.' };
     }
-
-    // If the user exists, return the response with relevant data
     return {
         status: 200,
         message: 'Typing status updated successfully',
